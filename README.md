@@ -13,7 +13,7 @@
 Каталог [демонстрации](./Demos) в этом репозитории содержит копии проекта, которые соответствуют выполнению отдельных разделов руководства. Если вы только захотите демонстрацию определенного раздела руководства, вы можете начать с версии, описанной в предыдущем разделе.
 
 - [01-Create-App](Demos/01-create-app): завершено [Создание узла. js Express Web App](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=1)
-- [02 – Add $ AAD – auth](Demos/02-add-aad-auth): завершено [Добавление проверки поДлинности для Azure AD](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=3)
+- [02 – Add $ AAD – auth](Demos/02-add-aad-auth): завершено [Добавление проверки подлинности для Azure AD](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=3)
 - [03 – Add – msgraph](Demos/03-add-msgraph): Completed [Получение данных календаря](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=4)
 
 ## <a name="completed-sample"></a>Пример завершен
