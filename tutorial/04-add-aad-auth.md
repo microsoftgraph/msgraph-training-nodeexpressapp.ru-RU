@@ -201,7 +201,7 @@ function getAuthenticatedClient(accessToken) {
 
 При этом экспортируется `getUserDetails` функция, которая использует пакет SDK Microsoft Graph для вызова `/me` конечной точки и возврата результата.
 
-Обновите `signInComplete` метод в `/app.s` методе, чтобы вызвать эту функцию. Сначала добавьте приведенные ниже `require` операторы в начало файла.
+Обновите `signInComplete` метод в `/app.js` методе, чтобы вызвать эту функцию. Сначала добавьте приведенные ниже `require` операторы в начало файла.
 
 ```js
 var graph = require('./graph');

@@ -29,7 +29,7 @@ npm start
 Прежде чем переходить, установите несколько дополнительных драгоценных камней, которые будут использоваться позже:
 
 - [дотенв](https://github.com/motdotla/dotenv) для загрузки значений из файла env.
-- [](https://github.com/moment/moment/) время для форматирования значений даты и времени.
+- [время для форматирования](https://github.com/moment/moment/) значений даты и времени.
 - сообщение об ошибке [Connect-Flash](https://github.com/jaredhanson/connect-flash) to Flash в приложении.
 - [Express — сеанс](https://github.com/expressjs/session) для хранения значений в серверном сеансе в памяти на стороне сервера.
 - [Passport — Azure — AD](https://github.com/AzureAD/passport-azure-ad) для проверки подлинности и получения маркеров доступа.
@@ -39,8 +39,8 @@ npm start
 Выполните следующую команду в командной панели CLI.
 
 ```Shell
-npm install dotenv@8.0.0 moment@2.24.0 connect-flash@0.1.1 express-session@1.16.1
-npm install passport-azure-ad@4.0.0 simple-oauth2@2.2.1 @microsoft/microsoft-graph-client@1.6.0
+npm install dotenv@8.1.0 moment@2.24.0 connect-flash@0.1.1 express-session@1.16.2
+npm install passport-azure-ad@4.1.0 simple-oauth2@2.4.0 @microsoft/microsoft-graph-client@1.7.0
 ```
 
 > [!TIP]
@@ -185,7 +185,7 @@ app.use(function(req, res, next) {
 </html>
 ```
 
-В этом коде [](http://getbootstrap.com/) добавляется начальная загрузка для простых стилей и [Шрифт Awesome](https://fontawesome.com/) для некоторых простых значков. Он также определяет глобальную структуру с помощью панели навигации.
+В этом коде добавляется [Начальная](http://getbootstrap.com/) загрузка для простых стилей и [Шрифт Awesome](https://fontawesome.com/) для некоторых простых значков. Он также определяет глобальную структуру с помощью панели навигации.
 
 Теперь откройте `./public/stylesheets/style.css` и замените все содержимое приведенным ниже.
 
