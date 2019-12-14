@@ -108,12 +108,10 @@ router.get('/signin',
         response: res,
         prompt: 'login',
         failureRedirect: '/',
-        failureFlash: true
+        failureFlash: true,
+        successRedirect: '/'
       }
     )(req,res,next);
-  },
-  function(req, res) {
-    res.redirect('/');
   }
 );
 
@@ -175,6 +173,7 @@ app.use('/auth', authRouter);
 
 ```js
 var graph = require('@microsoft/microsoft-graph-client');
+require('isomorphic-fetch');
 
 module.exports = {
   getUserDetails: async function(accessToken) {
@@ -300,7 +299,7 @@ async function signInComplete(iss, sub, profile, accessToken, refreshToken, para
 }
 ```
 
-Обновите `callback` маршрут в `./routes/auth.js` , чтобы удалить `req.flash` строку с маркером доступа. `callback` Маршрут должен выглядеть так, как показано ниже.
+Обновите `callback` маршрут в `./routes/auth.js` , чтобы удалить `req.flash` перенаправление вручную, и укажите для `successRedirect` `passport.authenticate`параметра значение. `callback` Маршрут должен выглядеть так, как показано ниже.
 
 ```js
 router.post('/callback',
@@ -309,12 +308,10 @@ router.post('/callback',
       {
         response: res,
         failureRedirect: '/',
-        failureFlash: true
+        failureFlash: true,
+        successRedirect: '/'
       }
     )(req,res,next);
-  },
-  function(req, res) {
-    res.redirect('/');
   }
 );
 ```
