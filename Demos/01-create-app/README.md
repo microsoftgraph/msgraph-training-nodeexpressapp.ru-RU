@@ -1,3 +1,0 @@
-# <a name="completed-module-create-a-nodejs-express-web-app"></a>Завершенный модуль: создание веб-приложения "node. js Express"
-
-Версия проекта в этом каталоге соответствует завершению работы с руководством по [созданию веб-приложения "node. js Express](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=1)". Если вы используете эту версию проекта, вам необходимо выполнить все остальные руководства, начиная с [регистрации приложения на портале](https://docs.microsoft.com/graph/training/node-tutorial?tutorial-step=2).
