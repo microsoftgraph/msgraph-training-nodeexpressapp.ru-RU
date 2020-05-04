@@ -8,7 +8,7 @@
 > - Скачайте [краткий старт Node. js](https://developer.microsoft.com/graph/quick-start?platform=option-node) , чтобы получить рабочий код в минутах.
 > - Скачайте или скопируйте [репозиторий GitHub](https://github.com/microsoftgraph/msgraph-training-nodeexpressapp).
 
-## <a name="prerequisites"></a>Необходимые компоненты
+## <a name="prerequisites"></a>Предварительные требования
 
 Прежде чем приступать к этой демонстрации, на компьютере для разработки должен быть установлен [node. js](https://nodejs.org) . Если у вас нет Node. js, посетите предыдущую ссылку для получения вариантов загрузки.
 
