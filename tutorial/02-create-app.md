@@ -22,6 +22,12 @@
     npm audit fix
     ```
 
+1. Выполните следующую команду, чтобы обновить версию Express и другие зависимости.
+
+    ```Shell
+    npm install express@4.17.1 http-errors@1.8.0 morgan@1.10.0 debug@4.1.1
+    ```
+
 1. Используйте следующую команду для запуска локального веб-сервера.
 
     ```Shell
@@ -36,18 +42,21 @@
 
 - [дотенв](https://github.com/motdotla/dotenv) для загрузки значений из файла env.
 - [время для форматирования](https://github.com/moment/moment/) значений даты и времени.
+- [Windows — IANA](https://github.com/rubenillodo/windows-iana) для преобразования названий часовых поясов Windows в идентификаторы IANA часовых поясов.
 - сообщение об ошибке [Connect-Flash](https://github.com/jaredhanson/connect-flash) to Flash в приложении.
 - [Express — сеанс](https://github.com/expressjs/session) для хранения значений в серверном сеансе в памяти на стороне сервера.
-- [Passport — Azure — AD](https://github.com/AzureAD/passport-azure-ad) для проверки подлинности и получения маркеров доступа.
-- [Simple — OAuth2](https://github.com/lelylan/simple-oauth2) для управления маркерами.
+- [Express – Promise — маршрутизатор](https://github.com/express-promise-router/express-promise-router) , позволяющий обработчикам маршрутов возвращать обещание.
+- [Express — средство проверки](https://github.com/express-validator/express-validator) для синтаксического анализа и проверки данных формы.
+- [msal — узел](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) для проверки подлинности и получения маркеров доступа.
+- [идентификатор UUID](https://github.com/uuidjs/uuid) , используемый узлом msal для создания идентификаторов GUID.
 - [Microsoft — Graph — клиент](https://github.com/microsoftgraph/msgraph-sdk-javascript) для совершения звонков в Microsoft Graph.
-- [исоморфик — получение](https://github.com/matthew-andrews/isomorphic-fetch) для заполнения для узла. Для `microsoft-graph-client` библиотеки необходима получающая заливка. Для получения дополнительных сведений посетите [вики-сайт клиентской библиотеки JavaScript для Microsoft Graph](https://github.com/microsoftgraph/msgraph-sdk-javascript/wiki/Migration-from-1.x.x-to-2.x.x#polyfill-only-when-required) .
+- [исоморфик — получение](https://github.com/matthew-andrews/isomorphic-fetch) для заполнения для узла. Для библиотеки необходима получающая заливка `microsoft-graph-client` . Для получения дополнительных сведений посетите [вики-сайт клиентской библиотеки JavaScript для Microsoft Graph](https://github.com/microsoftgraph/msgraph-sdk-javascript/wiki/Migration-from-1.x.x-to-2.x.x#polyfill-only-when-required) .
 
 1. Выполните следующую команду в командной панели CLI.
 
     ```Shell
-    npm install dotenv@8.2.0 moment@2.24.0 connect-flash@0.1.1 express-session@1.17.0 isomorphic-fetch@2.2.1
-    npm install passport-azure-ad@4.2.1 simple-oauth2@3.3.0 @microsoft/microsoft-graph-client@2.0.0
+    npm install dotenv@8.2.0 moment@2.29.1 moment-timezone@0.5.31 connect-flash@0.1.1 express-session@1.17.1 isomorphic-fetch@3.0.0
+    npm install @azure/msal-node@1.0.0-beta.0 @microsoft/microsoft-graph-client@2.1.1 windows-iana@4.2.1 express-validator@6.6.1 uuid@8.3.1
     ```
 
     > [!TIP]
@@ -63,11 +72,12 @@
     > npm install --global --production windows-build-tools
     > ```
 
-1. Обновите приложение, чтобы оно `connect-flash` использовалось по `express-session` промежуточному программному отношению. Откройте `./app.js` файл и добавьте приведенный ниже `require` оператор в начало файла.
+1. Обновите приложение, чтобы оно использовалось по промежуточному программному отношению `connect-flash` `express-session` . Откройте **./app.js** и добавьте следующий `require` оператор в начало файла.
 
     ```javascript
-    var session = require('express-session');
-    var flash = require('connect-flash');
+    const session = require('express-session');
+    const flash = require('connect-flash');
+    const msal = require('@azure/msal-node');
     ```
 
 1. Добавьте приведенный ниже код сразу после `var app = express();` строки.
@@ -78,21 +88,21 @@
 
 В этом разделе будет реализован пользовательский интерфейс приложения.
 
-1. Откройте `./views/layout.hbs` файл и замените все его содержимое приведенным ниже кодом.
+1. Откройте **/виевс/лайаут.ХБС** и замените все содержимое приведенным ниже кодом.
 
     :::code language="html" source="../demo/graph-tutorial/views/layout.hbs" id="LayoutSnippet":::
 
     В этом коде добавляется [Начальная](http://getbootstrap.com/) загрузка для простых стилей и [Шрифт Awesome](https://fontawesome.com/) для некоторых простых значков. Он также определяет глобальную структуру с помощью панели навигации.
 
-1. Откройте `./public/stylesheets/style.css` и замените все содержимое приведенным ниже.
+1. Откройте **/публик/стилешитс/стиле.КСС** и замените все содержимое следующим.
 
     :::code language="css" source="../demo/graph-tutorial/public/stylesheets/style.css":::
 
-1. Откройте `./views/index.hbs` файл и замените его содержимое на приведенный ниже код.
+1. Откройте **/виевс/индекс.ХБС** и замените его содержимое приведенным ниже.
 
     :::code language="html" source="../demo/graph-tutorial/views/index.hbs" id="IndexSnippet":::
 
-1. Откройте `./routes/index.js` файл и замените существующий код приведенным ниже кодом.
+1. Откройте **/раутес/index.js** и замените имеющийся код следующим кодом.
 
     :::code language="javascript" source="../demo/graph-tutorial/routes/index.js" id="IndexRouterSnippet" highlight="6-10":::
 

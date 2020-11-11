@@ -1,17 +1,17 @@
 <!-- markdownlint-disable MD002 MD041 -->
 
-В этом упражнении вы будете расширяем приложение из предыдущего упражнения для поддержки проверки подлинности с помощью Azure AD. Это необходимо для получения необходимого маркера доступа OAuth для вызова Microsoft Graph. На этом этапе вы интегрирует библиотеку [Passport – Azure AD AD](https://github.com/AzureAD/passport-azure-ad) в приложение.
+В этом упражнении вы будете расширяем приложение из предыдущего упражнения для поддержки проверки подлинности с помощью Azure AD. Это необходимо для получения необходимого маркера доступа OAuth для вызова Microsoft Graph. На этом этапе в приложение будет интегрирована библиотека [msal – node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) .
 
-1. Создайте новый файл с именем `.env` File в корневом каталоге приложения и добавьте следующий код.
+1. Создайте файл с именем **. env** в корневом каталоге приложения и добавьте следующий код.
 
-    :::code language="ini" source="../demo/graph-tutorial/.env.example":::
+    :::code language="ini" source="../demo/graph-tutorial/example.env":::
 
-    Замените `YOUR APP ID HERE` идентификатором приложения на портале регистрации приложений и замените `YOUR APP SECRET HERE` созданным паролем.
+    Замените `YOUR_CLIENT_SECRET_HERE` идентификатором приложения на портале регистрации приложений и замените на `YOUR_APP_SECRET_HERE` созданный секрет клиента.
 
     > [!IMPORTANT]
-    > Если вы используете систему управления версиями (например, Git), то в дальнейшем будет полезно исключить `.env` файл из системы управления версиями, чтобы избежать непреднамеренного утечки идентификатора и пароля приложения.
+    > Если вы используете систему управления версиями (например, Git), то теперь будет полезно исключить файл **env** из системы управления версиями, чтобы избежать непреднамеренного утечки идентификатора и пароля приложения.
 
-1. Откройте `./app.js` и добавьте указанную ниже строку в начало файла, чтобы загрузить `.env` файл.
+1. Откройте файл **./app.js** и добавьте следующую строку в начало файла, чтобы загрузить **env** -файл.
 
     ```javascript
     require('dotenv').config();
@@ -19,115 +19,91 @@
 
 ## <a name="implement-sign-in"></a>Реализация входа
 
-1. Расположите строку `var indexRouter = require('./routes/index');` в `./app.js`файле. Вставьте следующий код **перед** строкой.
+1. Откройте строку `var indexRouter = require('./routes/index');` в файле **./app.js**. Вставьте следующий код **перед** строкой.
+
+    :::code language="javascript" source="../demo/graph-tutorial/app.js" id="MsalInitSnippet":::
+
+    Этот код инициализирует библиотеку msal – node с ИДЕНТИФИКАТОРом и паролем приложения.
+
+1. Создайте новый файл в каталоге **./раутес** с именем **auth.js** и добавьте следующий код.
 
     ```javascript
-    var passport = require('passport');
-    var OIDCStrategy = require('passport-azure-ad').OIDCStrategy;
-
-    // Configure passport
-
-    // In-memory storage of logged-in users
-    // For demo purposes only, production apps should store
-    // this in a reliable storage
-    var users = {};
-
-    // Passport calls serializeUser and deserializeUser to
-    // manage users
-    passport.serializeUser(function(user, done) {
-      // Use the OID property of the user as a key
-      users[user.profile.oid] = user;
-      done (null, user.profile.oid);
-    });
-
-    passport.deserializeUser(function(id, done) {
-      done(null, users[id]);
-    });
-
-    // Callback function called once the sign-in is complete
-    // and an access token has been obtained
-    async function signInComplete(iss, sub, profile, accessToken, refreshToken, params, done) {
-      if (!profile.oid) {
-        return done(new Error("No OID found in user profile."));
-      }
-
-      // Save the profile and tokens in user storage
-      users[profile.oid] = { profile, accessToken };
-      return done(null, users[profile.oid]);
-    }
-
-    // Configure OIDC strategy
-    passport.use(new OIDCStrategy(
-      {
-        identityMetadata: `${process.env.OAUTH_AUTHORITY}${process.env.OAUTH_ID_METADATA}`,
-        clientID: process.env.OAUTH_APP_ID,
-        responseType: 'code id_token',
-        responseMode: 'form_post',
-        redirectUrl: process.env.OAUTH_REDIRECT_URI,
-        allowHttpForRedirectUrl: true,
-        clientSecret: process.env.OAUTH_APP_PASSWORD,
-        validateIssuer: false,
-        passReqToCallback: false,
-        scope: process.env.OAUTH_SCOPES.split(' ')
-      },
-      signInComplete
-    ));
-    ```
-
-    Этот код инициализирует библиотеку [Passport. js](http://www.passportjs.org/) для использования `passport-azure-ad` библиотеки и настраивает ее с помощью идентификатора приложения и пароля для приложения.
-
-1. Расположите строку `app.use('/', indexRouter);` в `./app.js`файле. Вставьте следующий код **перед** строкой.
-
-    ```javascript
-    // Initialize passport
-    app.use(passport.initialize());
-    app.use(passport.session());
-    ```
-
-1. Создайте новый файл в `./routes` каталоге `auth.js` и добавьте указанный ниже код.
-
-    ```javascript
-    var express = require('express');
-    var passport = require('passport');
-    var router = express.Router();
+    var router = require('express-promise-router')();
 
     /* GET auth callback. */
     router.get('/signin',
-      function  (req, res, next) {
-        passport.authenticate('azuread-openidconnect',
-          {
-            response: res,
-            prompt: 'login',
-            failureRedirect: '/',
-            failureFlash: true,
-            successRedirect: '/'
-          }
-        )(req,res,next);
+      async function (req, res) {
+        const urlParameters = {
+          scopes: process.env.OAUTH_SCOPES.split(','),
+          redirectUri: process.env.OAUTH_REDIRECT_URI
+        };
+
+        try {
+          const authUrl = await req.app.locals
+            .msalClient.getAuthCodeUrl(urlParameters);
+          res.redirect(authUrl);
+        }
+        catch (error) {
+          console.log(`Error: ${error}`);
+          req.flash('error_msg', {
+            message: 'Error getting auth URL',
+            debug: JSON.stringify(error, Object.getOwnPropertyNames(error))
+          });
+          res.redirect('/');
+        }
       }
     );
 
-    router.post('/callback',
-      function(req, res, next) {
-        passport.authenticate('azuread-openidconnect',
-          {
-            response: res,
-            failureRedirect: '/',
-            failureFlash: true
-          }
-        )(req,res,next);
-      },
-      function(req, res) {
-        // TEMPORARY!
-        // Flash the access token for testing purposes
-        req.flash('error_msg', {message: 'Access token', debug: req.user.accessToken});
+    router.get('/callback',
+      async function(req, res) {
+        const tokenRequest = {
+          code: req.query.code,
+          scopes: process.env.OAUTH_SCOPES.split(','),
+          redirectUri: process.env.OAUTH_REDIRECT_URI
+        };
+
+        try {
+          const response = await req.app.locals
+            .msalClient.acquireTokenByCode(tokenRequest);
+
+          // TEMPORARY!
+          // Flash the access token for testing purposes
+          req.flash('error_msg', {
+            message: 'Access token',
+            debug: response.accessToken
+          });
+        } catch (error) {
+          req.flash('error_msg', {
+            message: 'Error completing authentication',
+            debug: JSON.stringify(error, Object.getOwnPropertyNames(error))
+          });
+        }
+
         res.redirect('/');
       }
     );
 
     router.get('/signout',
-      function(req, res) {
-        req.session.destroy(function(err) {
-          req.logout();
+      async function(req, res) {
+        // Sign out
+        if (req.session.userId) {
+          // Look up the user's account in the cache
+          const accounts = await req.app.locals.msalClient
+            .getTokenCache()
+            .getAllAccounts();
+
+          const userAccount = accounts.find(a => a.homeAccountId === req.session.userId);
+
+          // Remove the account
+          if (userAccount) {
+            req.app.locals.msalClient
+              .getTokenCache()
+              .removeAccount(userAccount);
+          }
+        }
+
+        // Destroy the user's session
+        req.session.destroy(function (err) {
           res.redirect('/');
         });
       }
@@ -136,15 +112,15 @@
     module.exports = router;
     ```
 
-    Этот параметр определяет маршрутизатор с тремя маршрутами `signin`: `callback`,, `signout`и.
+    Этот параметр определяет маршрутизатор с тремя маршрутами: `signin` , `callback` , и `signout` .
 
-    `signin` Маршрут вызывает `passport.authenticate` метод, в результате чего приложение перенаправляется на страницу входа в Azure.
+    `signin`Маршрут вызывает `getAuthCodeUrl` функцию для создания URL-адреса входа, а затем перенаправляет браузер на этот URL-адрес.
 
-    `callback` Маршрут выполняет перенаправление Azure после завершения входа. Код вызывает `passport.authenticate` метод еще раз, в результате чего `passport-azure-ad` стратегия запрашивает маркер доступа. После получения маркера вызывается следующий обработчик, который перенаправляет обратно на домашнюю страницу с маркером доступа во временном значении ошибки. Мы будем использовать эту проверку, чтобы убедиться, что наш вход работает перед переходом. Перед тестированием необходимо настроить приложение Express для использования нового маршрутизатора `./routes/auth.js`.
+    `callback`Маршрут выполняет перенаправление Azure после завершения входа. Код вызывает `acquireTokenByCode` функцию для обмена кодом авторизации для маркера доступа. После получения маркера он перенаправляется обратно на домашнюю страницу с маркером доступа во временном значении ошибки. Мы будем использовать эту проверку, чтобы убедиться, что наш вход работает перед переходом. Перед тестированием необходимо настроить приложение Express для использования нового маршрутизатора с **./раутес/auth.js**.
 
-    `signout` Метод записывает пользователя и уничтожает сеанс.
+    `signout`Метод записывает пользователя и уничтожает сеанс.
 
-1. Откройте `./app.js` и вставьте следующий код **перед** `var app = express();` строкой.
+1. Откройте **app.js** и вставьте приведенный ниже код **перед** `var app = express();` строкой.
 
     ```javascript
     var authRouter = require('./routes/auth');
@@ -156,11 +132,11 @@
     app.use('/auth', authRouter);
     ```
 
-Запустите сервер и перейдите к `https://localhost:3000`. Нажмите кнопку входа, и вы будете перенаправлены на `https://login.microsoftonline.com`. Войдите с помощью учетной записи Майкрософт и согласия с запрошенными разрешениями. Браузер перенаправляется на приложение, отображая маркер.
+Запустите сервер и перейдите к `https://localhost:3000` . Нажмите кнопку входа, и вы будете перенаправлены на `https://login.microsoftonline.com` . Войдите с помощью учетной записи Майкрософт и согласия с запрошенными разрешениями. Браузер перенаправляется на приложение, отображая маркер.
 
 ### <a name="get-user-details"></a>Получение сведений о пользователе
 
-1. Создайте в корневом каталоге проекта новый файл `graph.js` и добавьте указанный ниже код.
+1. Создайте в корневом каталоге проекта новый файл с именем **graph.js** и добавьте следующий код.
 
     ```javascript
     var graph = require('@microsoft/microsoft-graph-client');
@@ -170,9 +146,12 @@
       getUserDetails: async function(accessToken) {
         const client = getAuthenticatedClient(accessToken);
 
-        const user = await client.api('/me').get();
+        const user = await client
+          .api('/me')
+          .select('displayName,mail,mailboxSettings,userPrincipalName')
+          .get();
         return user;
-      }
+      },
     };
 
     function getAuthenticatedClient(accessToken) {
@@ -191,62 +170,17 @@
 
     При этом экспортируется `getUserDetails` функция, которая использует пакет SDK Microsoft Graph для вызова `/me` конечной точки и возврата результата.
 
-1. Откройте `/app.js` и добавьте приведенные `require` ниже операторы в начало файла.
+1. Откройте **/раутес/auth.js** и добавьте приведенные ниже `require` операторы в начало файла.
 
     ```javascript
-    var graph = require('./graph');
+    var graph = require('../graph');
     ```
 
-1. Замените имеющуюся функцию `signInComplete` указанным ниже кодом.
+1. Замените существующий маршрут обратного вызова на следующий код.
 
-    ```javascript
-    async function signInComplete(iss, sub, profile, accessToken, refreshToken, params, done) {
-      if (!profile.oid) {
-        return done(new Error("No OID found in user profile."));
-      }
+    :::code language="javascript" source="../demo/graph-tutorial/routes/auth.js" id="CallbackSnippet" highlight="13-23":::
 
-      try{
-        const user = await graph.getUserDetails(accessToken);
-
-        if (user) {
-          // Add properties to profile
-          profile['email'] = user.mail ? user.mail : user.userPrincipalName;
-        }
-      } catch (err) {
-        return done(err);
-      }
-
-      // Save the profile and tokens in user storage
-      users[profile.oid] = { profile, accessToken };
-      return done(null, users[profile.oid]);
-    }
-    ```
-
-    Новый код обновляет `profile` предоставленное паспортом значение, чтобы добавить `email` свойство, используя данные, возвращенные Microsoft Graph.
-
-1. Добавьте **после** `app.use(passport.session());` строки следующую строку.
-
-    :::code language="javascript" source="../demo/graph-tutorial/app.js" id="AddProfileSnippet":::
-
-    Этот код загружает профиль пользователя в `locals` свойство ответа. Это сделает его доступным для всех представлений в приложении.
-
-## <a name="storing-the-tokens"></a>Сохранение маркеров
-
-Теперь, когда вы можете получить маркеры, следует реализовать способ их хранения в приложении. В настоящее время приложение сохраняет необработанный маркер доступа в хранилище пользователя в памяти. Так как это пример приложения, для простоты вы по-прежнему можете хранить их там. Реальное приложение использует более надежное решение для безопасного хранения, например базу данных.
-
-Однако хранение только маркера доступа не позволяет проверить срок действия или обновить маркер. Чтобы включить эту возможность, обновите пример, чтобы создать оболочку для маркеров `AccessToken` объекта из `simple-oauth2` библиотеки.
-
-1. Откройте `./app.js` и добавьте следующий код **перед** `signInComplete` функцией.
-
-    :::code language="javascript" source="../demo/graph-tutorial/app.js" id="ConfigureOAuth2Snippet":::
-
-1. Замените имеющуюся функцию `signInComplete` указанным ниже кодом.
-
-    :::code language="javascript" source="../demo/graph-tutorial/app.js" id="SignInCompleteSnippet" highlight="17-18, 21":::
-
-1. Замените существующий маршрут `./routes/auth.js` обратного вызова следующим.
-
-    :::code language="javascript" source="../demo/graph-tutorial/routes/auth.js" id="CallbackRouteSnippet" highlight="17-18":::
+    Новый код сохраняет идентификатор учетной записи пользователя в сеансе, получает сведения о пользователе из Microsoft Graph и сохраняет его в хранилище пользователя приложения.
 
 1. Перезапустите сервер и пройдите процесс входа. Необходимо вернуться на домашнюю страницу, но пользовательский интерфейс должен измениться, чтобы показать, что вы вошли в систему.
 
@@ -256,14 +190,10 @@
 
     ![Снимок экрана с раскрывающимся меню со ссылкой "выйти"](./images/add-aad-auth-02.png)
 
-## <a name="refreshing-tokens"></a>Обновление маркеров
+## <a name="storing-and-refreshing-tokens"></a>Хранение и обновление маркеров
 
 На этом шаге приложение имеет маркер доступа, который отправляется в `Authorization` заголовке вызовов API. Это маркер, который позволяет приложению получать доступ к Microsoft Graph от имени пользователя.
 
-Однако этот маркер кратковременно используется. Срок действия маркера истечет через час после его выдачи. В этом случае маркер обновления становится полезен. Маркер обновления позволяет приложению запросить новый маркер доступа, не требуя от пользователя повторного входа.
+Однако этот маркер кратковременно используется. Срок действия маркера истечет через час после его выдачи. В этом случае маркер обновления становится полезен. В спецификации OAuth представлен маркер обновления, который позволяет приложению запросить новый маркер доступа, не требуя от пользователя повторного входа.
 
-1. Создайте новый файл в корневой папке проекта, `tokens.js` в котором хранятся функции управления маркерами. Добавьте в него указанный ниже код.
-
-    :::code language="javascript" source="../demo/graph-tutorial/tokens.js" id="TokensSnippet":::
-
-Этот метод сначала проверяет, истек ли срок действия маркера доступа, или закройте его до истечения срока действия. Если это так, то он использует маркер обновления для получения новых токенов, затем обновляет кэш и возвращает новый маркер доступа. Этот метод используется, когда необходимо получить маркер доступа из хранилища.
+Так как приложение использует пакет msal-Node, не требуется реализовывать логику хранения или обновления маркеров. Приложение использует используемый по умолчанию кэш маркеров msal-узла в памяти, который достаточно для примера приложения. Рабочие приложения должны предоставить собственный [подключаемый модуль кэширования](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md) для сериализации кэша маркеров на надежном, надежном носителе.
