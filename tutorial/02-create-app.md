@@ -2,13 +2,13 @@
 
 В этом упражнении вы будете использовать [Express](http://expressjs.com/) для создания веб-приложения.
 
-1. Откройте CLI, перейдите в каталог, в котором у вас есть права на создание файлов, и запустите следующую команду, чтобы создать приложение Express, использующее [Handlebars](http://handlebarsjs.com/) в качестве обработщика отрисовки.
+1. Откройте CLI, перейдите в каталог, в котором у вас есть права на создание файлов, и запустите следующую команду, чтобы создать новое приложение Express, которое использует [handlebars](http://handlebarsjs.com/) в качестве двигателя отрисовки.
 
     ```Shell
     npx express-generator@4.16.1 --hbs graph-tutorial
     ```
 
-    Генератор Express создает новый каталог, называемый приложением Express, и создает `graph-tutorial` скаолдолды.
+    Генератор Express создает новый каталог под названием `graph-tutorial` и создает приложение Express.
 
 1. Перейдите в `graph-tutorial` каталог и введите следующую команду для установки зависимостей.
 
@@ -16,63 +16,63 @@
     npm install
     ```
 
-1. Чтобы обновить пакеты Node с помощью сообщений об уязвимостях, запустите следующую команду.
+1. Запустите следующую команду, чтобы обновить пакеты Node с сообщаемой уязвимостью.
 
     ```Shell
     npm audit fix
     ```
 
-1. Чтобы обновить версию Express и других зависимостей, запустите следующую команду.
+1. Запустите следующую команду для обновления версии Express и других зависимостей.
 
     ```Shell
-    npm install express@4.17.1 http-errors@1.8.0 morgan@1.10.0 debug@4.1.1
+    npm install express@4.17.1 http-errors@1.8.0 morgan@1.10.0 debug@4.3.1 hbs@4.1.2
     ```
 
-1. Используйте следующую команду для запуска локального веб-сервера.
+1. Чтобы запустить локальный веб-сервер, используйте следующую команду.
 
     ```Shell
     npm start
     ```
 
-1. Откройте браузер и перейдите по адресу `http://localhost:3000`. Если все работает, вы увидите сообщение "Добро пожаловать в Express". Если вы не видите это сообщение, ознакомьтесь с руководством [по началу работы с Express.](http://expressjs.com/starter/generator.html)
+1. Откройте браузер и перейдите по адресу `http://localhost:3000`. Если все работает, вы увидите сообщение "Добро пожаловать в экспресс". Если вы не видите это сообщение, проверьте руководство по началу [работы Express.](http://expressjs.com/starter/generator.html)
 
 ## <a name="install-node-packages"></a>Установка пакетов node
 
-Прежде чем двигаться дальше, установите некоторые дополнительные пакеты, которые вы будете использовать позже:
+Прежде чем двигаться дальше, установите дополнительные пакеты, которые вы будете использовать позже:
 
-- [dotenv](https://github.com/motdotla/dotenv) для загрузки значений из ENV-файла.
-- [момент](https://github.com/moment/moment/) для форматирования значений даты и времени.
-- [windows-iana](https://github.com/rubenillodo/windows-iana) для перевода имен часового пояса Windows в IANA.
-- [connect-flash](https://github.com/jaredhanson/connect-flash) к сообщениям об ошибках флэш-накопителя в приложении.
-- [express-session](https://github.com/expressjs/session) для хранения значений в сеансе на стороне сервера в памяти.
-- [express-promise-router,](https://github.com/express-promise-router/express-promise-router) позволяющий обработчику маршрутов возвращать обещание.
-- [express-validator](https://github.com/express-validator/express-validator) для анализа и проверки данных формы.
+- [dotenv](https://github.com/motdotla/dotenv) для загрузки значений из файла .env.
+- [date-fns](https://github.com/date-fns/date-fns) для форматирования значений даты и времени.
+- [windows-iana](https://github.com/rubenillodo/windows-iana) для перевода имен Windows часового пояса в IANA.
+- [подключение-вспышка](https://github.com/jaredhanson/connect-flash) для сообщений об ошибках вспышки в приложении.
+- [экспресс-сеанс](https://github.com/expressjs/session) для хранения значений в сеансе сервера в памяти.
+- [маршрутизатор express-promise-router,](https://github.com/express-promise-router/express-promise-router) позволяющий обработчику маршрутов возвращать обещание.
+- [экспресс-валидатор](https://github.com/express-validator/express-validator) для анализа и проверки данных форм.
 - [msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) для проверки подлинности и получения маркеров доступа.
-- [uuid](https://github.com/uuidjs/uuid) используется msal-node для создания GUID.
 - [microsoft-graph-client](https://github.com/microsoftgraph/msgraph-sdk-javascript) для звонков в Microsoft Graph.
-- [isomorphic-fetch](https://github.com/matthew-andrews/isomorphic-fetch) to polyfill the fetch for Node. Для библиотеки требуется извлечение `microsoft-graph-client` полифайла. Дополнительные сведения см. в вики-сайте клиентской библиотеки [JavaScript Microsoft Graph.](https://github.com/microsoftgraph/msgraph-sdk-javascript/wiki/Migration-from-1.x.x-to-2.x.x#polyfill-only-when-required)
+- [isomorphic-fetch](https://github.com/matthew-andrews/isomorphic-fetch) для полифайла для получения узла. Для библиотеки требуется извлечение `microsoft-graph-client` полифайла. Дополнительные сведения [см. Graph вики клиентской библиотеки Microsoft Graph JavaScript.](https://github.com/microsoftgraph/msgraph-sdk-javascript/wiki/Migration-from-1.x.x-to-2.x.x#polyfill-only-when-required)
 
 1. Запустите следующую команду в CLI.
 
     ```Shell
-    npm install dotenv@8.2.0 moment@2.29.1 moment-timezone@0.5.31 connect-flash@0.1.1 express-session@1.17.1 express-promise-router@4.0.1 isomorphic-fetch@3.0.0
-    npm install @azure/msal-node@1.0.0-beta.0 @microsoft/microsoft-graph-client@2.1.1 windows-iana@4.2.1 express-validator@6.6.1 uuid@8.3.1
+    npm install dotenv@8.2.0 date-fns@2.21.1 date-fns-tz@1.1.4 connect-flash@0.1.1 express-validator@6.10.0
+    npm install express-session@1.17.1 express-promise-router@4.1.0 isomorphic-fetch@3.0.0
+    npm install @azure/msal-node@1.0.2 @microsoft/microsoft-graph-client@2.2.1 windows-iana@5.0.1
     ```
 
     > [!TIP]
-    > При попытке установить эти пакеты в Windows пользователи Windows могут получить следующее сообщение об ошибке.
+    > Windows пользователи могут получить следующее сообщение об ошибке при попытке установить эти пакеты на Windows.
     >
     > ```Shell
     > gyp ERR! stack Error: Can't find Python executable "python", you can set the PYTHON env variable.
     > ```
     >
-    > Чтобы устранить ошибку, запустите следующую команду, чтобы установить средства сборки Windows с помощью окна терминала с повышенными уровнями (администратора), в котором устанавливаются средства сборки VS и Python.
+    > Чтобы устранить ошибку, запустите следующую команду, чтобы установить инструменты сборки Windows с помощью окна терминала повышенного уровня (Администратор), которое устанавливает средства сборки VS и Python.
     >
     > ```Shell
     > npm install --global --production windows-build-tools
     > ```
 
-1. Обновим приложение, чтобы использовать по `connect-flash` `express-session` середине и по середине. Откройте **файл ./app.js** добавьте в верхнюю часть файла `require` следующую выписку.
+1. Обнови приложение для использования `connect-flash` программного обеспечения и `express-session` среднего программного обеспечения. Откройте **./app.js** и добавьте следующее `require` утверждение в верхнюю часть файла.
 
     ```javascript
     const session = require('express-session');
@@ -86,26 +86,26 @@
 
 ## <a name="design-the-app"></a>Проектирование приложения
 
-В этом разделе мы реализуем пользовательский интерфейс приложения.
+В этом разделе будет реализован пользовательский интерфейс приложения.
 
 1. Откройте **./views/layout.hbs** и замените все содержимое следующим кодом.
 
     :::code language="html" source="../demo/graph-tutorial/views/layout.hbs" id="LayoutSnippet":::
 
-    В этом коде [добавляется Bootstrap](http://getbootstrap.com/) для простого стиля, а для некоторых простых значков [font : "Отличный".](https://fontawesome.com/) Он также определяет глобальный макет с панели nav.
+    Этот код добавляет [Bootstrap](http://getbootstrap.com/) для простого стиля и [Font Awesome](https://fontawesome.com/) для некоторых простых значков. Он также определяет глобальную макет с панели nav.
 
-1. Откройте **./public/stylesheets/style.css** и замените все его содержимое следующим:
+1. Откройте **таблицы ./public/stylesheets/style.css** и замените все содержимое следующим образом.
 
     :::code language="css" source="../demo/graph-tutorial/public/stylesheets/style.css":::
 
-1. Откройте **./views/index.hbs** и замените его содержимое на следующее.
+1. Откройте **./views/index.hbs** и замените его содержимое следующим.
 
     :::code language="html" source="../demo/graph-tutorial/views/index.hbs" id="IndexSnippet":::
 
-1. Откройте **./routes/index.js** и замените существующий код следующим кодом.
+1. Откройте **./routes/index.js** и замените существующий код следующим.
 
     :::code language="javascript" source="../demo/graph-tutorial/routes/index.js" id="IndexRouterSnippet" highlight="6-10":::
 
-1. Сохраните все изменения и перезапустите сервер. Теперь приложение должно выглядеть совершенно иначе.
+1. Сохраните все изменения и перезапустите сервер. Теперь приложение должно выглядеть совсем по-другому.
 
-    ![Снимок экрана с измененной домашней страницей](./images/create-app-01.png)
+    ![Снимок экрана: обновленная домашняя страница](./images/create-app-01.png)

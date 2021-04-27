@@ -1,28 +1,31 @@
 <!-- markdownlint-disable MD002 MD041 -->
 
-В этом упражнении вы включаете Microsoft Graph в приложение. Для этого приложения вы будете использовать клиентскую библиотеку [Microsoft-graph](https://github.com/microsoftgraph/msgraph-sdk-javascript) для вызова Microsoft Graph.
+В этом упражнении вы будете включать microsoft Graph в приложение. Для этого приложения вы будете использовать [библиотеку microsoft-graph-client](https://github.com/microsoftgraph/msgraph-sdk-javascript) для звонков в Microsoft Graph.
 
-## <a name="get-calendar-events-from-outlook"></a>Получить события календаря из Outlook
+## <a name="get-calendar-events-from-outlook"></a>Получение событий календаря из Outlook
 
-1. Откройте **./graph.js** и добавьте в него следующую `module.exports` функцию.
+1. Откройте **./graph.js** и добавьте следующую функцию внутри `module.exports` .
 
     :::code language="javascript" source="../demo/graph-tutorial/graph.js" id="GetCalendarViewSnippet":::
 
-    Подумайте, что делает этот код.
+    Давайте посмотрим, что делает этот код.
 
-    - Будет вызван URL-адрес `/me/calendarview` .
-    - Метод `header` добавляет загон в запрос, в результате чего время начала и окончания возвращается в часовом поясе `Prefer: outlook.timezone` пользователя.
-    - Метод `query` задает `startDateTime` `endDateTime` параметры и параметры представления календаря.
-    - Этот `select` метод ограничивает поля, возвращаемые для каждого события, только теми полями, которые будут фактически использовать представление.
-    - Метод `orderby` сортировать результаты по времени начала.
-    - Этот `top` метод ограничивает результаты до 50 событий.
+    - Вызывается URL-адрес `/me/calendarview`.
+    - Метод `header` добавляет загон в запрос, в результате чего время начала и окончания возвращается в часовом `Prefer: outlook.timezone` поясе пользователя.
+    - Метод задает параметры и `query` `startDateTime` `endDateTime` параметры представления календаря.
+    - Метод ограничивает поля, возвращенные для каждого события, только теми, которые будут `select` фактически использовать представление.
+    - Метод `orderby` сортировать результаты к началу.
+    - Метод ограничивает результаты до `top` 50 событий.
 
-1. Создайте новый файл в **каталоге ./routes** **с именемcalendar.js** и добавьте следующий код.
+1. Создайте новый файл в **каталоге маршрутов с** именемcalendar.jsи **добавьте** следующий код.
 
     ```javascript
     const router = require('express-promise-router')();
     const graph = require('../graph.js');
-    const moment = require('moment-timezone');
+    const addDays = require('date-fns/addDays');
+    const formatISO = require('date-fns/formatISO');
+    const startOfWeek = require('date-fns/startOfWeek');
+    const zonedTimeToUtc = require('date-fns-tz/zonedTimeToUtc');
     const iana = require('windows-iana');
     const { body, validationResult } = require('express-validator');
     const validator = require('validator');
@@ -42,17 +45,16 @@
           const user = req.app.locals.users[req.session.userId];
           // Convert user's Windows time zone ("Pacific Standard Time")
           // to IANA format ("America/Los_Angeles")
-          // Moment needs IANA format
-          const timeZoneId = iana.findOneIana(user.timeZone);
+          const timeZoneId = iana.findIana(user.timeZone)[0];
           console.log(`Time zone: ${timeZoneId.valueOf()}`);
 
           // Calculate the start and end of the current week
           // Get midnight on the start of the current week in the user's timezone,
           // but in UTC. For example, for Pacific Standard Time, the time value would be
           // 07:00:00Z
-          var startOfWeek = moment.tz(timeZoneId.valueOf()).startOf('week').utc();
-          var endOfWeek = moment(startOfWeek).add(7, 'day');
-          console.log(`Start: ${startOfWeek.format()}`);
+          var weekStart = zonedTimeToUtc(startOfWeek(new Date()), timeZoneId.valueOf());
+          var weekEnd = addDays(weekStart, 7);
+          console.log(`Start: ${formatISO(weekStart)}`);
 
           // Get the access token
           var accessToken;
@@ -68,8 +70,8 @@
               // Get the events
               const events = await graph.getCalendarView(
                 accessToken,
-                startOfWeek.format(),
-                endOfWeek.format(),
+                formatISO(weekStart),
+                formatISO(weekEnd),
                 user.timeZone);
 
               res.json(events.value);
@@ -109,7 +111,7 @@
     module.exports = router;
     ```
 
-1. **Обновим ./app.js,** чтобы использовать этот новый маршрут. Добавьте следующую **строку перед** `var app = express();` строкой.
+1. Обновление **./app.js** для использования этого нового маршрута. Добавьте следующую **строку перед** `var app = express();` строкой.
 
     ```javascript
     var calendarRouter = require('./routes/calendar');
@@ -121,28 +123,28 @@
     app.use('/calendar', calendarRouter);
     ```
 
-1. Перезапустите сервер. Войдите и щелкните **ссылку "Календарь"** на панели nav. Если все работает, в календаре пользователя должен быть дамп событий JSON.
+1. Перезапустите сервер. Войдите и щелкните **ссылку Календарь** в панели nav. Если все работает надлежащим образом, в календаре пользователя должен появиться дамп событий в формате JSON.
 
 ## <a name="display-the-results"></a>Отображение результатов
 
-Теперь можно добавить представление для более удобного отображения результатов.
+Теперь вы можете добавить представление для отображения результатов в более понятной пользователям форме.
 
 1. Добавьте следующий код в **./app.js после** `app.set('view engine', 'hbs');` строки.
 
     :::code language="javascript" source="../demo/graph-tutorial/app.js" id="FormatDateSnippet":::
 
-    При этом реализуется помощник [handlebars](http://handlebarsjs.com/#helpers) для формата даты ISO 8601, возвращаемой Microsoft Graph, в более удобное для человека.
+    Это реализует помощник [handlebars](http://handlebarsjs.com/#helpers) для формата даты ISO 8601, возвращенной корпорацией Майкрософт Graph во что-то более удобное для человека.
 
 1. Создайте новый файл в **каталоге ./views** с именем **calendar.hbs** и добавьте следующий код.
 
     :::code language="html" source="../demo/graph-tutorial/views/calendar.hbs" id="LayoutSnippet":::
 
-    При этом будет цикл через коллекцию событий и добавлена строка таблицы для каждого из них.
+    Это позволяет повторять коллекцию событий и добавить для каждого из них строку таблицы.
 
-1. Теперь обновим маршрут в **./routes/calendar.js** для использования этого представления. Замените существующий маршрут следующим кодом.
+1. Теперь обнови маршрут **в ./routes/calendar.js** для использования этого представления. Замените существующий маршрут следующим кодом.
 
     :::code language="javascript" source="../demo/graph-tutorial/routes/calendar.js" id="GetRouteSnippet" highlight="33-36,49,51-54,61":::
 
-1. Сохраните изменения, перезапустите сервер и вопишите в приложение. Щелкните **ссылку "Календарь",** и приложение должно отрисовки таблицы событий.
+1. Сохраните изменения, перезапустите сервер и вопишитесь в приложение. Щелкните **ссылку Календарь,** и теперь приложение должно отрисовки таблицы событий.
 
     ![Снимок экрана с таблицей событий](./images/add-msgraph-01.png)
